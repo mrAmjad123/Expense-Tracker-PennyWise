@@ -1,0 +1,134 @@
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.budget-overview {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.budget-overview-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.budget-overview-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.budget-overview-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.budget-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.budget-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.budget-stat-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.budget-stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.text-danger {
+  color: var(--color-danger-dark);
+}
+
+.progress-track {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+}
+
+.progress-warning .progress-fill {
+  background: linear-gradient(90deg, #fbbf24, var(--color-warning));
+}
+
+.progress-exceeded .progress-fill {
+  background: linear-gradient(90deg, #f87171, var(--color-danger));
+}
+
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.progress-overspend {
+  color: var(--color-danger-dark);
+}
+
+.budget-alert {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  animation: fade-in 0.2s ease;
+}
+
+.budget-alert-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning-dark);
+}
+
+.budget-alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger-dark);
+}
+
+.budget-empty-hint {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .budget-overview-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .budget-stats {
+    grid-template-columns: 1fr;
+  }
+}

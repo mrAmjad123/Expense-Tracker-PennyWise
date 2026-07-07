@@ -1,0 +1,147 @@
+.monthly-breakdown {
+  margin-top: 40px;
+}
+
+.monthly-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.monthly-list {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.monthly-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr 1.1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.monthly-row:last-child {
+  border-bottom: none;
+}
+
+.monthly-row-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.monthly-row-btn:hover {
+  background: var(--color-bg);
+}
+
+.monthly-row-active {
+  background: rgba(108, 92, 231, 0.08);
+}
+
+.monthly-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.monthly-field-label {
+  display: none;
+}
+
+.monthly-amount {
+  font-weight: 700;
+}
+
+.monthly-total {
+  background: rgba(108, 92, 231, 0.06);
+  font-weight: 800;
+}
+
+.monthly-total .monthly-amount {
+  color: var(--color-primary-dark);
+}
+
+.align-right {
+  text-align: right;
+  justify-self: end;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-neutral {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.status-ok {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--color-success);
+}
+
+.status-warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning-dark);
+}
+
+.status-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger-dark);
+}
+
+/* Below this width, a 5-column grid can't fit — switch every row to a
+   labeled 2-column card so all fields stay visible instead of being
+   dropped off-grid. */
+@media (max-width: 720px) {
+  .monthly-header {
+    display: none;
+  }
+
+  .monthly-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    padding: 16px;
+  }
+
+  .monthly-field-month {
+    grid-column: 1 / -1;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .monthly-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+    justify-self: stretch;
+  }
+
+  .monthly-field-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+}

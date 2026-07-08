@@ -1,4 +1,4 @@
-const BASE_URL = "/api/budgets";
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || ""}/api/budgets`;
 
 async function handleResponse(res) {
   const data = await res.json().catch(() => null);

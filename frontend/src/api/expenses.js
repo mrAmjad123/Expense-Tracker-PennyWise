@@ -11,22 +11,23 @@ async function handleResponse(res) {
 }
 
 export function getExpenses() {
-  return fetch(BASE_URL).then(handleResponse);
+  return fetch(BASE_URL, { credentials: "include" }).then(handleResponse);
 }
 
 export function getSummary(month) {
   const query = month ? `?month=${encodeURIComponent(month)}` : "";
-  return fetch(`${BASE_URL}/summary${query}`).then(handleResponse);
+  return fetch(`${BASE_URL}/summary${query}`, { credentials: "include" }).then(handleResponse);
 }
 
 export function getCategories() {
-  return fetch(`${BASE_URL}/categories`).then(handleResponse);
+  return fetch(`${BASE_URL}/categories`, { credentials: "include" }).then(handleResponse);
 }
 
 export function createExpense(payload) {
   return fetch(BASE_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(payload),
   }).then(handleResponse);
 }
@@ -35,10 +36,11 @@ export function updateExpense(id, payload) {
   return fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(payload),
   }).then(handleResponse);
 }
 
 export function deleteExpense(id) {
-  return fetch(`${BASE_URL}/${id}`, { method: "DELETE" }).then(handleResponse);
+  return fetch(`${BASE_URL}/${id}`, { method: "DELETE", credentials: "include" }).then(handleResponse);
 }

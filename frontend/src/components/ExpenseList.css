@@ -3,6 +3,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .expense-list-header,
@@ -47,6 +48,19 @@
 
 .expense-row:hover {
   background: var(--color-bg);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+/* Show actions clearly on hover, keep them subtle otherwise */
+.expense-actions .btn {
+  opacity: 0.75;
+  transition: opacity var(--speed-fast) ease, transform var(--speed-fast) var(--ease-out),
+    box-shadow var(--speed-med) var(--ease-out), background var(--speed-fast) ease,
+    color var(--speed-fast) ease, border-color var(--speed-fast) ease;
+}
+
+.expense-row:hover .expense-actions .btn {
+  opacity: 1;
 }
 
 .expense-title {
@@ -67,13 +81,26 @@
 }
 
 .category-pill {
-  display: inline-block;
+  --pill-color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(108, 92, 231, 0.1);
-  color: var(--color-primary-dark);
+  background: color-mix(in srgb, var(--pill-color) 10%, transparent);
+  color: var(--pill-color);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* Colored dot matching the category's chart color */
+.category-pill::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pill-color);
+  flex-shrink: 0;
 }
 
 .expense-date {

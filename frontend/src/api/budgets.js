@@ -9,17 +9,18 @@ async function handleResponse(res) {
 }
 
 export function getAllBudgets() {
-  return fetch(BASE_URL).then(handleResponse);
+  return fetch(BASE_URL, { credentials: "include" }).then(handleResponse);
 }
 
 export function getBudget(month) {
-  return fetch(`${BASE_URL}/${month}`).then(handleResponse);
+  return fetch(`${BASE_URL}/${month}`, { credentials: "include" }).then(handleResponse);
 }
 
 export function setBudget(month, amount) {
   return fetch(`${BASE_URL}/${month}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ amount }),
   }).then(handleResponse);
 }

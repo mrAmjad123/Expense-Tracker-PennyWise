@@ -23,17 +23,17 @@ export default function MonthlyBreakdown({ byMonth, total, budgetsByMonth, activ
           const isActive = m.month === activeMonth;
 
           let statusLabel = "No budget";
-          let statusClass = "status-neutral";
+          let statusClass = "monthly-status-neutral";
           if (hasBudget) {
             if (remaining < 0) {
               statusLabel = "Over budget";
-              statusClass = "status-danger";
+              statusClass = "monthly-status-danger";
             } else if (m.total / budget >= 0.8) {
               statusLabel = "Near limit";
-              statusClass = "status-warning";
+              statusClass = "monthly-status-warning";
             } else {
               statusLabel = "Under budget";
-              statusClass = "status-ok";
+              statusClass = "monthly-status-ok";
             }
           }
 
@@ -58,7 +58,7 @@ export default function MonthlyBreakdown({ byMonth, total, budgetsByMonth, activ
                 {hasBudget ? formatCurrency(remaining) : "—"}
               </span>
               <span className="monthly-field align-right">
-                <span className={`status-pill ${statusClass}`}>{statusLabel}</span>
+                <span className={`monthly-status-pill ${statusClass}`}>{statusLabel}</span>
               </span>
             </button>
           );

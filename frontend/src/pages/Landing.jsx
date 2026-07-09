@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useReveal } from "../utils/useReveal";
 import "./Landing.css";
 
 const FEATURES = [
@@ -31,6 +32,10 @@ const STEPS = [
 ];
 
 export default function Landing() {
+  const featuresRef = useReveal();
+  const stepsRef = useReveal();
+  const ctaRef = useReveal();
+
   return (
     <div className="landing">
       <section className="hero">
@@ -52,9 +57,10 @@ export default function Landing() {
           </div>
         </div>
         <div className="hero-glow" aria-hidden="true" />
+        <div className="hero-glow-2" aria-hidden="true" />
       </section>
 
-      <section className="container features">
+      <section className="container features reveal" ref={featuresRef}>
         <h2 className="section-title">Everything you need, nothing you don't</h2>
         <p className="section-subtitle">A focused toolset for staying on top of your spending.</p>
         <div className="feature-grid">
@@ -68,7 +74,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="container steps">
+      <section className="container steps reveal" ref={stepsRef}>
         <h2 className="section-title">How it works</h2>
         <div className="steps-grid">
           {STEPS.map((s) => (
@@ -82,7 +88,7 @@ export default function Landing() {
       </section>
 
       <section className="cta">
-        <div className="container cta-inner">
+        <div className="container cta-inner reveal" ref={ctaRef}>
           <h2>Ready to see where your money goes?</h2>
           <p>Open your dashboard and add your first expense in under a minute.</p>
           <Link to="/dashboard" className="btn btn-primary cta-btn">

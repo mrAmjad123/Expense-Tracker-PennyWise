@@ -2,9 +2,10 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(1.6);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  border-bottom: 1px solid rgba(231, 232, 242, 0.8);
 }
 
 .navbar-inner {
@@ -33,6 +34,12 @@
   background: var(--gradient-hero);
   color: #fff;
   font-weight: 700;
+  box-shadow: var(--shadow-primary);
+  transition: transform var(--speed-med) var(--ease-spring);
+}
+
+.navbar-brand:hover .navbar-logo {
+  transform: rotate(-8deg) scale(1.08);
 }
 
 .navbar-links {
@@ -42,21 +49,42 @@
 }
 
 .navbar-links a {
+  position: relative;
   color: var(--color-text-muted);
   font-weight: 600;
   font-size: 0.95rem;
   padding: 6px 2px;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color var(--speed-fast) ease;
+}
+
+/* Animated underline that grows from the center */
+.navbar-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transition: transform var(--speed-med) var(--ease-out);
 }
 
 .navbar-links a:hover {
   color: var(--color-text);
 }
 
+.navbar-links a:hover::after {
+  transform: scaleX(0.6);
+}
+
 .navbar-links a.active {
   color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+}
+
+.navbar-links a.active::after {
+  transform: scaleX(1);
 }
 
 .navbar-cta {

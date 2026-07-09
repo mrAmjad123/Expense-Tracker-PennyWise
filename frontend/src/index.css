@@ -1,9 +1,9 @@
 :root {
-  --color-bg: #f6f7fb;
+  --color-bg: #f6f7fc;
   --color-surface: #ffffff;
-  --color-border: #e5e7f0;
-  --color-text: #1a1d29;
-  --color-text-muted: #6b7086;
+  --color-border: #e7e8f2;
+  --color-text: #191c2b;
+  --color-text-muted: #676d85;
   --color-primary: #6c5ce7;
   --color-primary-dark: #5a4bd4;
   --color-primary-light: #a29bfe;
@@ -14,13 +14,26 @@
   --color-warning-dark: #b45309;
   --color-success: #16a34a;
   --gradient-hero: linear-gradient(135deg, #6c5ce7 0%, #00b4d8 100%);
-  --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.06);
-  --shadow-md: 0 8px 24px rgba(20, 20, 40, 0.08);
-  --shadow-lg: 0 20px 40px rgba(20, 20, 40, 0.14);
-  --radius-sm: 8px;
+  --gradient-primary-btn: linear-gradient(135deg, #7b6cf0 0%, #6c5ce7 60%, #5a4bd4 100%);
+
+  --shadow-sm: 0 1px 2px rgba(23, 20, 50, 0.05), 0 1px 6px rgba(23, 20, 50, 0.04);
+  --shadow-md: 0 2px 6px rgba(23, 20, 50, 0.05), 0 10px 28px rgba(23, 20, 50, 0.08);
+  --shadow-lg: 0 4px 12px rgba(23, 20, 50, 0.06), 0 24px 48px rgba(23, 20, 50, 0.14);
+  --shadow-primary: 0 4px 14px rgba(108, 92, 231, 0.35);
+  --shadow-primary-lg: 0 8px 24px rgba(108, 92, 231, 0.42);
+
+  --radius-sm: 10px;
   --radius-md: 14px;
-  --radius-lg: 22px;
-  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --radius-lg: 20px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --speed-fast: 0.16s;
+  --speed-med: 0.28s;
+  --speed-slow: 0.5s;
+
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto,
+    Helvetica, Arial, sans-serif;
 
   color-scheme: light;
 }
@@ -35,11 +48,20 @@ body {
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(108, 92, 231, 0.22);
 }
 
 #root {
@@ -53,6 +75,7 @@ h2,
 h3 {
   margin: 0;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 p {
@@ -68,6 +91,13 @@ button {
   font-family: inherit;
 }
 
+/* Visible, on-brand focus for keyboard users only */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .app-main {
   flex: 1;
   width: 100%;
@@ -79,7 +109,10 @@ button {
   padding: 0 24px;
 }
 
+/* ---------- Buttons ---------- */
+
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -90,33 +123,46 @@ button {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform var(--speed-fast) var(--ease-out),
+    box-shadow var(--speed-med) var(--ease-out),
+    background var(--speed-fast) ease,
+    color var(--speed-fast) ease,
+    filter var(--speed-fast) ease;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--gradient-primary-btn);
   color: #fff;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-primary);
 }
 
 .btn-primary:hover {
-  background: var(--color-primary-dark);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-primary-lg);
+  filter: brightness(1.05);
 }
 
 .btn-ghost {
-  background: transparent;
+  background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-ghost:hover {
-  background: var(--color-bg);
+  border-color: rgba(108, 92, 231, 0.4);
+  color: var(--color-primary-dark);
+  background: rgba(108, 92, 231, 0.04);
 }
 
 .btn-danger {
@@ -125,7 +171,8 @@ button {
 }
 
 .btn-danger:hover {
-  background: rgba(239, 68, 68, 0.18);
+  background: rgba(239, 68, 68, 0.16);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
 }
 
 .btn-sm {
@@ -136,12 +183,16 @@ button {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
+
+/* ---------- Cards & entrance animations ---------- */
 
 @keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -150,17 +201,86 @@ button {
 }
 
 .card-anim {
-  animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: card-in var(--speed-slow) var(--ease-out) both;
 }
 
 .card-anim-delay-1 {
-  animation-delay: 0.05s;
+  animation-delay: 0.06s;
 }
 
 .card-anim-delay-2 {
-  animation-delay: 0.1s;
+  animation-delay: 0.12s;
 }
 
 .card-anim-delay-3 {
-  animation-delay: 0.15s;
+  animation-delay: 0.18s;
+}
+
+/* Hover-lift for interactive cards */
+.card-hover {
+  transition:
+    transform var(--speed-med) var(--ease-out),
+    box-shadow var(--speed-med) var(--ease-out),
+    border-color var(--speed-med) ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(108, 92, 231, 0.25);
+}
+
+/* ---------- Scroll reveal (used with useReveal hook) ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 0.6s var(--ease-out);
+}
+
+.reveal.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Subtle scrollbar ---------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cfd2e4;
+  border-radius: 999px;
+  border: 2px solid var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b4b8d2;
+}
+
+/* ---------- Reduced motion: kill non-essential animation ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }

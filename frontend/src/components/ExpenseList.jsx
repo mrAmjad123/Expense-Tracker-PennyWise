@@ -1,4 +1,5 @@
 import { formatCurrency } from "../utils/currency";
+import { categoryColor } from "../utils/categoryColors";
 import "./ExpenseList.css";
 
 function formatDate(dateStr) {
@@ -37,7 +38,12 @@ export default function ExpenseList({ expenses, onEdit, onDelete }) {
             {expense.notes && <span className="expense-notes">{expense.notes}</span>}
           </div>
           <div>
-            <span className="category-pill">{expense.category}</span>
+            <span
+              className="category-pill"
+              style={{ "--pill-color": categoryColor(expense.category) }}
+            >
+              {expense.category}
+            </span>
           </div>
           <div className="expense-date">{formatDate(expense.date)}</div>
           <div className="expense-amount align-right">{formatCurrency(expense.amount)}</div>

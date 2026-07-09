@@ -6,6 +6,8 @@
 }
 
 .summary-card {
+  position: relative;
+  overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -13,12 +15,40 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-icon {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-size: 1.4rem;
+  opacity: 0.85;
+  transition: transform var(--speed-med) var(--ease-spring);
+}
+
+.summary-card:hover .summary-icon {
+  transform: scale(1.18) rotate(-6deg);
 }
 
 .summary-card-primary {
   background: var(--gradient-hero);
   border: none;
   color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+/* Soft decorative shine in the corner of the primary card */
+.summary-card-primary::after {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  top: -110px;
+  right: -60px;
+  pointer-events: none;
 }
 
 .summary-card-primary .summary-label {
@@ -34,6 +64,7 @@
 .summary-value {
   font-size: 1.7rem;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-sub {

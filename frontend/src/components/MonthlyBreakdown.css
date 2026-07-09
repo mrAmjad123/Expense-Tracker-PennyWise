@@ -13,6 +13,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .monthly-row {
@@ -42,6 +43,7 @@
 
 .monthly-row-btn:hover {
   background: var(--color-bg);
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 .monthly-row-active {
@@ -79,7 +81,7 @@
   justify-self: end;
 }
 
-.status-pill {
+.monthly-status-pill {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
@@ -88,22 +90,22 @@
   white-space: nowrap;
 }
 
-.status-neutral {
+.monthly-status-neutral {
   background: var(--color-bg);
   color: var(--color-text-muted);
 }
 
-.status-ok {
+.monthly-status-ok {
   background: rgba(22, 163, 74, 0.12);
   color: var(--color-success);
 }
 
-.status-warning {
+.monthly-status-warning {
   background: rgba(245, 158, 11, 0.12);
   color: var(--color-warning-dark);
 }
 
-.status-danger {
+.monthly-status-danger {
   background: rgba(239, 68, 68, 0.12);
   color: var(--color-danger-dark);
 }

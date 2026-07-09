@@ -17,7 +17,7 @@ import MonthlyBreakdown from "../components/MonthlyBreakdown";
 import MonthSelector from "../components/MonthSelector";
 import BudgetOverview from "../components/BudgetOverview";
 import BudgetForm from "../components/BudgetForm";
-import CategoryChart from "../components/CategoryChart";
+import StatisticsCard from "../components/StatisticsCard";
 import "./Dashboard.css";
 
 export default function Dashboard() {
@@ -171,7 +171,7 @@ export default function Dashboard() {
             }}
           />
 
-          <CategoryChart data={summary?.monthByCategory} />
+          <StatisticsCard expenses={expenses} selectedMonth={selectedMonth} onSelectMonth={setSelectedMonth} />
 
           <div className="filter-bar">
             <label htmlFor="category-filter">Filter by category</label>

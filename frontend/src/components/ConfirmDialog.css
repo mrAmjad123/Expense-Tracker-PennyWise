@@ -9,6 +9,17 @@
   padding: 20px;
 }
 
+@keyframes confirm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .confirm-card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -16,7 +27,7 @@
   max-width: 380px;
   box-shadow: var(--shadow-lg);
   padding: 24px;
-  animation: fade-in 0.15s ease;
+  animation: confirm-pop var(--speed-med) var(--ease-spring) both;
 }
 
 .confirm-card h3 {

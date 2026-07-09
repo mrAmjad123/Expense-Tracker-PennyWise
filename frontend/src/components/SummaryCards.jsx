@@ -6,15 +6,18 @@ export default function SummaryCards({ summary }) {
 
   return (
     <div className="summary-grid">
-      <div className="summary-card summary-card-primary card-anim">
+      <div className="summary-card summary-card-primary card-anim card-hover">
+        <span className="summary-icon" aria-hidden="true">💸</span>
         <span className="summary-label">Total Spent This Month</span>
         <span className="summary-value">{formatCurrency(summary?.total)}</span>
       </div>
-      <div className="summary-card card-anim card-anim-delay-1">
+      <div className="summary-card card-anim card-anim-delay-1 card-hover">
+        <span className="summary-icon" aria-hidden="true">🧾</span>
         <span className="summary-label">Expenses Logged</span>
         <span className="summary-value">{summary?.count ?? 0}</span>
       </div>
-      <div className="summary-card card-anim card-anim-delay-2">
+      <div className="summary-card card-anim card-anim-delay-2 card-hover">
+        <span className="summary-icon" aria-hidden="true">🏆</span>
         <span className="summary-label">Top Category</span>
         <span className="summary-value">{topCategory ? topCategory.category : "—"}</span>
         {topCategory && <span className="summary-sub">{formatCurrency(topCategory.total)}</span>}

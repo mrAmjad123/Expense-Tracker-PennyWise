@@ -1,0 +1,39 @@
+services:
+  - name: pennywise-backend
+    type: web
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      # Update this if Render assigns a different subdomain than expected
+      # (check the frontend service's URL after its first deploy).
+      - key: FRONTEND_URL
+        value: https://pennywise-frontend.onrender.com
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false
+
+  - name: pennywise-frontend
+    type: web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - source: /*
+        destination: /index.html
+    envVars:
+      # Update this if Render assigns a different subdomain than expected
+      # (check the backend service's URL after its first deploy).
+      - key: VITE_API_BASE_URL
+        value: https://pennywise-backend.onrender.com
+      - key: VITE_RECAPTCHA_SITE_KEY
+        sync: false

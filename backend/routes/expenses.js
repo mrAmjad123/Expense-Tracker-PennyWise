@@ -1,7 +1,10 @@
 const express = require("express");
 const db = require("../db/database");
+const authMiddleware = require("../authMiddleware");
 
 const router = express.Router();
+
+router.use(authMiddleware);
 
 const CATEGORIES = new Set([
   "Food",
@@ -33,27 +36,35 @@ function validateExpense(body) {
   return { errors, value: { title, amount, category, date, notes } };
 }
 
-// GET /api/expenses - list all expenses, most recent first
+// GET /api/expenses - list all expenses for the current user, most recent first
 router.get("/", (req, res) => {
-  const rows = db.prepare("SELECT * FROM expenses ORDER BY date DESC, id DESC").all();
+  const rows = db
+    .prepare("SELECT * FROM expenses WHERE user_id = ? ORDER BY date DESC, id DESC")
+    .all(req.userId);
   res.json(rows);
 });
 
 const MONTH_RE = /^\d{4}-\d{2}$/;
 
-// GET /api/expenses/summary - totals by category, by month + grand total.
+// GET /api/expenses/summary - totals by category, by month + grand total (scoped to current user).
 // Pass ?month=YYYY-MM to also get totals/category-breakdown scoped to that month.
 router.get("/summary", (req, res) => {
-  const total = db.prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses").get();
+  const total = db
+    .prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE user_id = ?")
+    .get(req.userId);
   const byCategory = db
-    .prepare("SELECT category, COALESCE(SUM(amount), 0) AS total FROM expenses GROUP BY category ORDER BY total DESC")
-    .all();
+    .prepare(
+      "SELECT category, COALESCE(SUM(amount), 0) AS total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC"
+    )
+    .all(req.userId);
   const byMonth = db
     .prepare(
-      "SELECT strftime('%Y-%m', date) AS month, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM expenses GROUP BY month ORDER BY month DESC"
+      "SELECT strftime('%Y-%m', date) AS month, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count FROM expenses WHERE user_id = ? GROUP BY month ORDER BY month DESC"
     )
-    .all();
-  const count = db.prepare("SELECT COUNT(*) AS count FROM expenses").get();
+    .all(req.userId);
+  const count = db
+    .prepare("SELECT COUNT(*) AS count FROM expenses WHERE user_id = ?")
+    .get(req.userId);
 
   const response = { total: total.total, count: count.count, byCategory, byMonth };
 
@@ -63,16 +74,16 @@ router.get("/summary", (req, res) => {
       return res.status(400).json({ error: "Month must be in YYYY-MM format." });
     }
     const monthTotal = db
-      .prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE strftime('%Y-%m', date) = ?")
-      .get(month);
+      .prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE user_id = ? AND strftime('%Y-%m', date) = ?")
+      .get(req.userId, month);
     const monthCount = db
-      .prepare("SELECT COUNT(*) AS count FROM expenses WHERE strftime('%Y-%m', date) = ?")
-      .get(month);
+      .prepare("SELECT COUNT(*) AS count FROM expenses WHERE user_id = ? AND strftime('%Y-%m', date) = ?")
+      .get(req.userId, month);
     const monthByCategory = db
       .prepare(
-        "SELECT category, COALESCE(SUM(amount), 0) AS total FROM expenses WHERE strftime('%Y-%m', date) = ? GROUP BY category ORDER BY total DESC"
+        "SELECT category, COALESCE(SUM(amount), 0) AS total FROM expenses WHERE user_id = ? AND strftime('%Y-%m', date) = ? GROUP BY category ORDER BY total DESC"
       )
-      .all(month);
+      .all(req.userId, month);
 
     response.month = month;
     response.monthTotal = monthTotal.total;
@@ -90,7 +101,9 @@ router.get("/categories", (req, res) => {
 
 // GET /api/expenses/:id
 router.get("/:id", (req, res) => {
-  const row = db.prepare("SELECT * FROM expenses WHERE id = ?").get(req.params.id);
+  const row = db
+    .prepare("SELECT * FROM expenses WHERE id = ? AND user_id = ?")
+    .get(req.params.id, req.userId);
   if (!row) return res.status(404).json({ error: "Expense not found." });
   res.json(row);
 });
@@ -102,36 +115,44 @@ router.post("/", (req, res) => {
 
   const result = db
     .prepare(
-      "INSERT INTO expenses (title, amount, category, date, notes) VALUES (?, ?, ?, ?, ?)"
+      "INSERT INTO expenses (user_id, title, amount, category, date, notes) VALUES (?, ?, ?, ?, ?, ?)"
     )
-    .run(value.title, value.amount, value.category, value.date, value.notes);
+    .run(req.userId, value.title, value.amount, value.category, value.date, value.notes);
 
-  const created = db.prepare("SELECT * FROM expenses WHERE id = ?").get(result.lastInsertRowid);
+  const created = db
+    .prepare("SELECT * FROM expenses WHERE id = ? AND user_id = ?")
+    .get(result.lastInsertRowid, req.userId);
   res.status(201).json(created);
 });
 
 // PUT /api/expenses/:id - update
 router.put("/:id", (req, res) => {
-  const existing = db.prepare("SELECT * FROM expenses WHERE id = ?").get(req.params.id);
+  const existing = db
+    .prepare("SELECT * FROM expenses WHERE id = ? AND user_id = ?")
+    .get(req.params.id, req.userId);
   if (!existing) return res.status(404).json({ error: "Expense not found." });
 
   const { errors, value } = validateExpense(req.body);
   if (errors.length) return res.status(400).json({ errors });
 
   db.prepare(
-    "UPDATE expenses SET title = ?, amount = ?, category = ?, date = ?, notes = ?, updated_at = datetime('now') WHERE id = ?"
-  ).run(value.title, value.amount, value.category, value.date, value.notes, req.params.id);
+    "UPDATE expenses SET title = ?, amount = ?, category = ?, date = ?, notes = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?"
+  ).run(value.title, value.amount, value.category, value.date, value.notes, req.params.id, req.userId);
 
-  const updated = db.prepare("SELECT * FROM expenses WHERE id = ?").get(req.params.id);
+  const updated = db
+    .prepare("SELECT * FROM expenses WHERE id = ? AND user_id = ?")
+    .get(req.params.id, req.userId);
   res.json(updated);
 });
 
 // DELETE /api/expenses/:id
 router.delete("/:id", (req, res) => {
-  const existing = db.prepare("SELECT * FROM expenses WHERE id = ?").get(req.params.id);
+  const existing = db
+    .prepare("SELECT * FROM expenses WHERE id = ? AND user_id = ?")
+    .get(req.params.id, req.userId);
   if (!existing) return res.status(404).json({ error: "Expense not found." });
 
-  db.prepare("DELETE FROM expenses WHERE id = ?").run(req.params.id);
+  db.prepare("DELETE FROM expenses WHERE id = ? AND user_id = ?").run(req.params.id, req.userId);
   res.status(204).send();
 });
 

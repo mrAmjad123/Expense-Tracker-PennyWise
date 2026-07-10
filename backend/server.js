@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { initDb } = require("./db/database");
 const authRouter = require("./routes/auth");
 const expensesRouter = require("./routes/expenses");
 const budgetsRouter = require("./routes/budgets");
@@ -29,6 +30,18 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Expense tracker API running at http://localhost:${PORT}`);
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error." });
 });
+
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Expense tracker API running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to initialize database:", err);
+    process.exit(1);
+  });

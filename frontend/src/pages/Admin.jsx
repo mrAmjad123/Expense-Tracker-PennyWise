@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import "./Admin.css";
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr.replace(" ", "T") + "Z");
+  const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }

@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { pool } = require("../db/database");
 const authMiddleware = require("../authMiddleware");
 const asyncHandler = require("../asyncHandler");
+const { sendOtpEmail, sendResetEmail } = require("../email");
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -93,8 +94,17 @@ router.post(
       [trimmedName, trimmedEmail, passwordHash, hashToken(otp), expiresAt]
     );
 
-    // TODO: send otp by email once an email provider is wired up.
+    const emailSent = await sendOtpEmail(trimmedEmail, otp)
+      .then(() => true)
+      .catch((err) => {
+        console.error("[email] Failed to send OTP:", err.message);
+        return false;
+      });
     console.log(`[signup otp] ${trimmedEmail} -> ${otp}`);
+
+    if (!emailSent && process.env.NODE_ENV === "production") {
+      return res.status(502).json({ error: "Failed to send the verification email. Please try again." });
+    }
 
     const response = { message: "We sent a 6-digit verification code to your email.", email: trimmedEmail };
     if (process.env.NODE_ENV !== "production") response.otp = otp;
@@ -168,7 +178,9 @@ router.post(
       [hashToken(otp), expiresAt, pending.id]
     );
 
-    // TODO: send otp by email once an email provider is wired up.
+    await sendOtpEmail(trimmedEmail, otp).catch((err) => {
+      console.error("[email] Failed to send OTP:", err.message);
+    });
     console.log(`[signup otp resend] ${trimmedEmail} -> ${otp}`);
 
     if (process.env.NODE_ENV !== "production") {
@@ -278,7 +290,9 @@ router.post(
 
     const resetLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${rawToken}`;
 
-    // TODO: send resetLink by email once an email provider is wired up.
+    await sendResetEmail(trimmedEmail, resetLink).catch((err) => {
+      console.error("[email] Failed to send reset link:", err.message);
+    });
     console.log(`[password reset] ${trimmedEmail} -> ${resetLink}`);
 
     if (process.env.NODE_ENV !== "production") {

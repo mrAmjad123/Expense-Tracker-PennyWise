@@ -52,6 +52,12 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (max-width: 640px) {
+  html {
+    font-size: 93.75%; /* 15px base — scales all rem-based text down slightly on mobile */
+  }
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);

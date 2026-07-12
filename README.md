@@ -53,3 +53,14 @@ Open http://localhost:5173. The frontend dev server proxies `/api/*` to the back
 ## Requirements
 
 Node.js 22.5+ (uses the built-in `node:sqlite` module — no native build tools needed).
+
+## Security
+
+All secrets (JWT signing secret, database URL, reCAPTCHA secret key, SendGrid API key) are read from
+environment variables — see `backend/.env.example` and `frontend/.env.example` for the full list. Never commit
+a real `.env` or `.env.local` file; both are gitignored.
+
+**If you ever hardcoded a real secret in source and committed it, that value remains readable in git history
+even after removing it from the current files.** Rotate/regenerate it immediately (new JWT secret, new
+database password, new API key, etc.) rather than relying on a later commit to "remove" it — the old value is
+still recoverable from history and, if this repo is or ever becomes public, from GitHub's cache/forks too.

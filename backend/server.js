@@ -1,6 +1,9 @@
 require("dotenv").config();
+require("./env")(); // refuses to start if a required env var is missing
 
+const crypto = require("crypto");
 const express = require("express");
+const helmet = require("helmet");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { initDb } = require("./db/database");
@@ -12,6 +15,24 @@ const adminRouter = require("./routes/admin");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    hsts: { maxAge: 31536000 },
+    frameguard: { action: "deny" },
+  })
+);
+app.use((req, res, next) => {
+  req.id = crypto.randomUUID();
+  res.setHeader("X-Request-Id", req.id);
+  next();
+});
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -31,8 +52,12 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: "Internal server error." });
+  // Log only message + stack — Postgres errors can carry a `.detail` field
+  // that echoes back user data (e.g. "Key (email)=(...) already exists."),
+  // so avoid logging the raw error object. The request ID ties this log
+  // line back to the generic response the client received.
+  console.error(`[${req.id}]`, err.stack || err.message);
+  res.status(500).json({ error: "Internal server error.", requestId: req.id });
 });
 
 initDb()

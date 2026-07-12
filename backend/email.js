@@ -45,8 +45,8 @@ function sendResetEmail(to, link) {
   return sendEmail({
     to,
     subject: "Reset your PennyWise password",
-    text: `Reset your PennyWise password using this link (expires in 1 hour): ${link}`,
-    html: `<p>Click the link below to reset your PennyWise password. This link expires in 1 hour.</p>
+    text: `Reset your PennyWise password using this link (expires in 15 minutes): ${link}`,
+    html: `<p>Click the link below to reset your PennyWise password. This link expires in 15 minutes.</p>
 <p><a href="${link}">${link}</a></p>
 <p>If you didn't request this, you can ignore this email.</p>`,
   });

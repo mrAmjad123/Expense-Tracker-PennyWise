@@ -15,9 +15,15 @@ async function initDb() {
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'user',
       suspended BOOLEAN NOT NULL DEFAULT FALSE,
+      token_valid_after TIMESTAMPTZ NOT NULL DEFAULT now(),
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
+  `);
+  // Existing deployments already have a `users` table without this column —
+  // CREATE TABLE IF NOT EXISTS above is a no-op for them, so add it explicitly.
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS token_valid_after TIMESTAMPTZ NOT NULL DEFAULT now()
   `);
 
   await pool.query(`

@@ -48,6 +48,15 @@ export function changePassword({ currentPassword, newPassword }) {
   }).then(handleResponse);
 }
 
+export function deleteAccount({ currentPassword }) {
+  return fetch(BASE_URL + "/me", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ currentPassword }),
+  }).then(handleResponse);
+}
+
 export function forgotPassword({ email }) {
   return fetch(BASE_URL + "/forgot-password", {
     method: "POST",

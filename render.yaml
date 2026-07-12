@@ -44,6 +44,30 @@ services:
     routes:
       - source: /*
         destination: /index.html
+    # Security headers. CSP allows Google's domains because the login/signup
+    # pages embed the reCAPTCHA widget; allows the backend's own domain in
+    # connect-src for API calls (update if the backend's URL changes).
+    # style-src needs 'unsafe-inline' because several components set inline
+    # style={{...}} (progress bars, category color dots, chart bars).
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000
+      - path: /*
+        name: Content-Security-Policy
+        value: >-
+          default-src 'self';
+          script-src 'self' https://www.google.com https://www.gstatic.com;
+          frame-src https://www.google.com;
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data:;
+          connect-src 'self' https://expense-tracker-pennywise-backend1.onrender.com;
     envVars:
       # Update this if Render assigns a different subdomain than expected
       # (check the backend service's URL after its first deploy).

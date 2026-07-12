@@ -8,6 +8,12 @@ const router = express.Router();
 
 router.use(authMiddleware, adminMiddleware);
 
+// Reject non-numeric :id before it reaches a query (see expenses.js for why).
+router.param("id", (req, res, next, id) => {
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: "Invalid user ID." });
+  next();
+});
+
 // GET /api/admin/users - list all users with expense counts
 router.get(
   "/users",
@@ -66,6 +72,7 @@ router.delete(
 
       await client.query("DELETE FROM expenses WHERE user_id = $1", [targetId]);
       await client.query("DELETE FROM budgets WHERE user_id = $1", [targetId]);
+      await client.query("DELETE FROM password_reset_tokens WHERE user_id = $1", [targetId]);
       await client.query("DELETE FROM users WHERE id = $1", [targetId]);
       await client.query("COMMIT");
       res.status(204).send();

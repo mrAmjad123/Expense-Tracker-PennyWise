@@ -7,6 +7,16 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
+// Reject non-numeric :id before it reaches a query — passing something like
+// "1 OR 1=1" as a parameterized value for an integer column doesn't cause
+// SQL injection (it's still bound as a literal value, never concatenated
+// into the query), but Postgres fails to cast it and throws, surfacing an
+// ugly 500 instead of a clean 400.
+router.param("id", (req, res, next, id) => {
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: "Invalid expense ID." });
+  next();
+});
+
 const CATEGORIES = new Set([
   "Food",
   "Transport",

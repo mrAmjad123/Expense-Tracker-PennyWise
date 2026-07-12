@@ -6,8 +6,9 @@ const { pool } = require("../db/database");
 const authMiddleware = require("../authMiddleware");
 const asyncHandler = require("../asyncHandler");
 const { sendOtpEmail, sendResetEmail } = require("../email");
+const { loginLimiter, signupLimiter, otpLimiter, passwordResetLimiter } = require("../rateLimiters");
 
-const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_OTP_ATTEMPTS = 5;
 
@@ -60,6 +61,7 @@ function publicUser(row) {
 // The account isn't created until POST /verify-otp succeeds.
 router.post(
   "/signup",
+  signupLimiter,
   asyncHandler(async (req, res) => {
     const { name, email, password, recaptchaToken } = req.body;
 
@@ -100,7 +102,9 @@ router.post(
         console.error("[email] Failed to send OTP:", err.message);
         return false;
       });
-    console.log(`[signup otp] ${trimmedEmail} -> ${otp}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[signup otp] ${trimmedEmail} -> ${otp}`);
+    }
 
     if (!emailSent && process.env.NODE_ENV === "production") {
       return res.status(502).json({ error: "Failed to send the verification email. Please try again." });
@@ -115,6 +119,7 @@ router.post(
 // POST /api/auth/verify-otp - completes signup: creates the real account and logs in.
 router.post(
   "/verify-otp",
+  otpLimiter,
   asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
     const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -161,6 +166,7 @@ router.post(
 // POST /api/auth/resend-otp
 router.post(
   "/resend-otp",
+  otpLimiter,
   asyncHandler(async (req, res) => {
     const { email } = req.body;
     const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -181,9 +187,8 @@ router.post(
     await sendOtpEmail(trimmedEmail, otp).catch((err) => {
       console.error("[email] Failed to send OTP:", err.message);
     });
-    console.log(`[signup otp resend] ${trimmedEmail} -> ${otp}`);
-
     if (process.env.NODE_ENV !== "production") {
+      console.log(`[signup otp resend] ${trimmedEmail} -> ${otp}`);
       return res.json({ ...genericResponse, otp });
     }
     res.json(genericResponse);
@@ -193,6 +198,7 @@ router.post(
 // POST /api/auth/login
 router.post(
   "/login",
+  loginLimiter,
   asyncHandler(async (req, res) => {
     const { email, password, recaptchaToken } = req.body;
 
@@ -218,10 +224,22 @@ router.post(
 );
 
 // POST /api/auth/logout
-router.post("/logout", (req, res) => {
-  res.clearCookie("token", COOKIE_OPTIONS);
-  res.status(204).send();
-});
+router.post(
+  "/logout",
+  asyncHandler(async (req, res) => {
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        await pool.query("UPDATE users SET token_valid_after = now() WHERE id = $1", [payload.userId]);
+      } catch {
+        // Token already invalid/expired — nothing to invalidate.
+      }
+    }
+    res.clearCookie("token", COOKIE_OPTIONS);
+    res.status(204).send();
+  })
+);
 
 // GET /api/auth/me
 router.get(
@@ -257,11 +275,52 @@ router.post(
     if (!currentOk) return res.status(400).json({ error: "Current password is incorrect." });
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    await pool.query("UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2", [
-      newHash,
-      req.userId,
-    ]);
+    // Bumping token_valid_after invalidates every session issued before now
+    // (e.g. a stolen cookie) — re-issue a fresh one so the current browser
+    // tab that just authenticated this request isn't logged out too.
+    await pool.query(
+      "UPDATE users SET password_hash = $1, token_valid_after = now(), updated_at = now() WHERE id = $2",
+      [newHash, req.userId]
+    );
+    issueToken(res, req.userId);
 
+    res.status(204).send();
+  })
+);
+
+// DELETE /api/auth/me - permanently deletes the current user's account and all their data
+router.delete(
+  "/me",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const { currentPassword } = req.body;
+
+    const { rows } = await pool.query("SELECT * FROM users WHERE id = $1", [req.userId]);
+    const user = rows[0];
+    if (!user) return res.status(401).json({ error: "Not authenticated." });
+
+    const currentOk = await bcrypt.compare(
+      typeof currentPassword === "string" ? currentPassword : "",
+      user.password_hash
+    );
+    if (!currentOk) return res.status(400).json({ error: "Current password is incorrect." });
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("DELETE FROM expenses WHERE user_id = $1", [req.userId]);
+      await client.query("DELETE FROM budgets WHERE user_id = $1", [req.userId]);
+      await client.query("DELETE FROM password_reset_tokens WHERE user_id = $1", [req.userId]);
+      await client.query("DELETE FROM users WHERE id = $1", [req.userId]);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    res.clearCookie("token", COOKIE_OPTIONS);
     res.status(204).send();
   })
 );
@@ -269,6 +328,7 @@ router.post(
 // POST /api/auth/forgot-password
 router.post(
   "/forgot-password",
+  passwordResetLimiter,
   asyncHandler(async (req, res) => {
     const { email } = req.body;
     const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -293,9 +353,8 @@ router.post(
     await sendResetEmail(trimmedEmail, resetLink).catch((err) => {
       console.error("[email] Failed to send reset link:", err.message);
     });
-    console.log(`[password reset] ${trimmedEmail} -> ${resetLink}`);
-
     if (process.env.NODE_ENV !== "production") {
+      console.log(`[password reset] ${trimmedEmail} -> ${resetLink}`);
       return res.json({ ...genericResponse, resetLink });
     }
     res.json(genericResponse);
@@ -305,6 +364,7 @@ router.post(
 // POST /api/auth/reset-password
 router.post(
   "/reset-password",
+  passwordResetLimiter,
   asyncHandler(async (req, res) => {
     const { token, newPassword } = req.body;
 
@@ -325,10 +385,12 @@ router.post(
     }
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    await pool.query("UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2", [
-      newHash,
-      row.user_id,
-    ]);
+    // Invalidate any existing sessions too — a password reset is often used
+    // precisely because the account may be compromised.
+    await pool.query(
+      "UPDATE users SET password_hash = $1, token_valid_after = now(), updated_at = now() WHERE id = $2",
+      [newHash, row.user_id]
+    );
     await pool.query("DELETE FROM password_reset_tokens WHERE id = $1", [row.id]);
 
     res.status(204).send();
